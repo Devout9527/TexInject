@@ -81,6 +81,48 @@ object MusicPlayer {
     private var qrImage: ImageView? = null
     private var qrStatus: TextView? = null
     private var loginBtn: Button? = null
+
+    // ---------------- 最近播放 ----------------
+    private const val PREF_RECENT = "texinject_music_recent"
+    private val recents = mutableListOf<Song>()
+    @Volatile private var curTab = 0          // 0=推荐  1=最近播放
+
+    private fun recentStore(c: android.content.Context) =
+        c.getSharedPreferences(PREF_RECENT, android.content.Context.MODE_PRIVATE)
+
+    private fun loadRecents(c: android.content.Context) {
+        recents.clear()
+        try {
+            val arr = org.json.JSONArray(recentStore(c).getString("list", "[]"))
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                recents.add(Song(o.optLong("id"), o.optString("name"), o.optString("artist")))
+            }
+        } catch (e: Throwable) {
+        }
+    }
+
+    private fun saveRecents(c: android.content.Context) {
+        try {
+            val arr = org.json.JSONArray()
+            for (sg in recents.take(100)) {
+                arr.put(org.json.JSONObject().apply {
+                    put("id", sg.id); put("name", sg.name); put("artist", sg.artist)
+                })
+            }
+            recentStore(c).edit().putString("list", arr.toString()).apply()
+        } catch (e: Throwable) {
+        }
+    }
+
+    /** 播放时记一笔（按 id 去重，最新的排最前）。 */
+    private fun addRecent(c: android.content.Context, song: Song) {
+        recents.removeAll { it.id == song.id }
+        recents.add(0, song)
+        while (recents.size > 100) recents.removeAt(recents.size - 1)
+        saveRecents(c)
+    }
+
     private var lyricsView: TextView? = null
     private var lyricLines: List<Pair<Long, String>> = emptyList()
     private var lyricRunnable: Runnable? = null
@@ -154,6 +196,7 @@ object MusicPlayer {
     /** 构建音乐播放器 View（由面板加到右侧固定容器）。 */
     fun buildView(activity: Activity): View {
         appCtx = activity.applicationContext
+        loadRecents(activity.applicationContext)
         configure(activity)
         uiActivity = activity
         playMode = getPlayMode(activity)
@@ -570,6 +613,7 @@ object MusicPlayer {
     }
 
     private fun play(activity: Activity, song: Song) {
+        try { addRecent(activity.applicationContext, song) } catch (e: Throwable) {}
         setStatus("获取播放地址：${song.name} …")
         Thread({
             try {
