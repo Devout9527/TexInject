@@ -232,15 +232,7 @@ object MusicPlayer {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        loginBtn = Button(activity).apply {
-            text = if (cookie != null) "已登录" else "扫码登录"
-            setOnClickListener { startQrLogin(activity) }
-        }
-        loginRow.addView(loginBtn, LinearLayout.LayoutParams(d(88f), d(40f)))
-        loginRow.addView(Button(activity).apply {
-            text = "手机号"
-            setOnClickListener { togglePhoneLogin(activity, phoneBox) }
-        }, LinearLayout.LayoutParams(d(72f), d(40f)).apply { leftMargin = d(6f) })
+        // 扫码登录 / 手机号登录已移到「设置 → 网易云登录」
         qrStatus = TextView(activity).apply {
             text = if (cookie != null) "已登录，可播放 VIP 歌" else "未登录（多数歌无播放地址）"
             textSize = 11f
@@ -435,6 +427,100 @@ object MusicPlayer {
     }
 
     // ---------- 手机号登录 ----------
+
+    /**
+     * 设置页专用：弹一个登录对话框（二维码 + 手机号），
+     * 内部复用音乐页那套登录流程，只是把承载控件临时指向对话框里的 View。
+     */
+    fun showLoginDialog(activity: Activity) {
+        val d = activity.resources.displayMetrics.density
+        fun dp(v: Float) = (v * d + .5f).toInt()
+
+        val box = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16f), dp(12f), dp(16f), dp(12f))
+        }
+        val qrImg = ImageView(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(180f), dp(180f)).apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+            }
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }
+        val qrUrlTv = TextView(activity).apply {
+            textSize = 10f
+            setTextColor(Color.parseColor("#8899A6"))
+        }
+        val st = TextView(activity).apply {
+            text = if (cookie != null) "已登录，可播放 VIP 歌" else "点下面按钮获取二维码"
+            textSize = 12f
+            setTextColor(Color.parseColor("#CCCCCC"))
+            setPadding(0, dp(6f), 0, dp(6f))
+        }
+        val phBox = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            visibility = View.GONE
+        }
+        val phRow = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL }
+        val phoneInput = EditText(activity).apply {
+            hint = "手机号"
+            inputType = android.text.InputType.TYPE_CLASS_PHONE
+            setTextColor(Color.WHITE)
+            setSingleLine(true)
+        }
+        val pwdInput = EditText(activity).apply {
+            hint = "密码"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setTextColor(Color.WHITE)
+            setSingleLine(true)
+        }
+        phRow.addView(phoneInput, LinearLayout.LayoutParams(0, dp(40f), 1f))
+        phRow.addView(pwdInput, LinearLayout.LayoutParams(0, dp(40f), 1f))
+        phBox.addView(phRow)
+        phBox.addView(TextView(activity).apply {
+            text = "手机号登录"
+            textSize = 12f
+            gravity = Gravity.CENTER
+            setTextColor(Color.WHITE)
+            setPadding(0, dp(8f), 0, dp(8f))
+            isClickable = true
+            setOnClickListener {
+                val ph = phoneInput.text.toString().trim()
+                val pw = pwdInput.text.toString()
+                if (ph.isEmpty() || pw.isEmpty()) {
+                    Toast.makeText(activity, "请输入手机号和密码", Toast.LENGTH_SHORT).show()
+                } else {
+                    doPhoneLogin(activity, ph, pw)
+                }
+            }
+        })
+
+        box.addView(qrImg)
+        box.addView(qrUrlTv)
+        box.addView(st)
+        box.addView(phBox)
+
+        val dlg = android.app.AlertDialog.Builder(activity)
+            .setTitle("网易云登录")
+            .setView(box)
+            .setNeutralButton("手机号登录") { _, _ ->
+                phBox.visibility = if (phBox.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            }
+            .setNegativeButton("关闭", null)
+            .create()
+        dlg.setOnDismissListener {
+            // 关掉后把承载控件还原空，避免指向已销毁的 View
+            qrImage = null; qrUrlView = null; qrStatus = null; phoneBox = null
+        }
+        dlg.show()
+
+        // 复用原登录流程：把内部 View 临时指到对话框里的控件
+        qrImage = qrImg
+        qrUrlView = qrUrlTv
+        qrStatus = st
+        phoneBox = phBox
+        if (cookie == null) startQrLogin(activity)
+    }
 
     private fun togglePhoneLogin(activity: Activity, box: LinearLayout?) {
         box ?: return

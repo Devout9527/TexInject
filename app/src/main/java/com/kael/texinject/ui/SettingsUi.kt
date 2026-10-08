@@ -192,6 +192,29 @@ object SettingsUi {
             setPadding(0, d(8f), 0, 0)
         }, lp())
 
+        // ---------------- 网易云登录（从音乐页移过来） ----------------
+        root.addView(sectionTitle("网易云登录"))
+        root.addView(TextView(activity).apply {
+            text = "在线播放 / VIP 歌曲需要登录。登录状态用 AES-256 加密存在应用私有目录。"
+            textSize = 11.5f
+            setTextColor(Color.parseColor("#8899A6"))
+            setPadding(0, d(4f), 0, d(8f))
+        }, lp())
+        root.addView(TextView(activity).apply {
+            text = "扫码登录 / 手机号登录"
+            textSize = 13f
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            setPadding(0, d(10f), 0, d(10f))
+            background = GradientDrawable().apply {
+                setColor(Color.parseColor("#CC0A84FF"))
+                cornerRadius = d(10f).toFloat()
+            }
+            isClickable = true
+            setOnClickListener { com.kael.texinject.MusicPlayer.showLoginDialog(activity) }
+        }, lp())
+
         // ---------------- 检查更新 ----------------
         root.addView(sectionTitle("检查更新"))
         root.addView(TextView(activity).apply {
