@@ -402,9 +402,20 @@ class OverlayLayout(
                 val side = dp(PanelTuning.iconDp(activity).toFloat())
                 val iv = ImageView(activity).apply {
                     layoutParams = FrameLayout.LayoutParams(side, side, Gravity.CENTER)
-                    if (bmp != null) setImageBitmap(bmp) else setImageResource(builtin!!)
+                    if (bmp != null) {
+                        setImageBitmap(bmp)
+                    } else {
+                        setImageResource(builtin!!)
+                        // 内置图标是描边矢量，统一染成白色，避免某些 ROM 上不上色
+                        imageTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
+                    }
                     scaleType = ImageView.ScaleType.FIT_CENTER
                 }
+                com.kael.texinject.TexInjectHookInit.logExternal(
+                    "[TexInject] cat icon[$i] name=$name " +
+                    (if (bmp != null) "custom bitmap" else "builtin res=$builtin") +
+                    " size=${side}px"
+                )
                 sidebarIconViews.add(iv)
                 item.addView(iv)
             }
@@ -514,6 +525,9 @@ class OverlayLayout(
             // 未选中 -> 只显示图标
             iv.visibility = if (i == index) View.GONE else View.VISIBLE
         }
+        com.kael.texinject.TexInjectHookInit.logExternal(
+            "[TexInject] renderCategory=$index icons=${sidebarIconViews.size} labels=${sidebarLabels.size}"
+        )
         val host = contentHost ?: return
         host.removeAllViews()
 
