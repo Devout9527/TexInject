@@ -509,6 +509,39 @@ class OverlayLayout(
         renderCategory(prefs.getInt("cat", 0).coerceIn(0, cats.size - 1))
     }
 
+    /**
+     * 把右栏内容整体换成某个 MCP 模块的配置菜单（不再弹新的一层）。
+     * 顶部给一个「← 返回」回到快捷键列表。
+     */
+    private fun showConfigInColumn(module: McpModule) {
+        val host = contentHost ?: return
+        host.removeAllViews()
+        val d = activity.resources.displayMetrics.density
+        fun dp(v: Float) = (v * d + .5f).toInt()
+
+        host.addView(TextView(activity).apply {
+            text = "← 返回"
+            textSize = 13f
+            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            setTextColor(Color.WHITE)
+            setPadding(dp(4f), dp(4f), dp(4f), dp(10f))
+            isClickable = true
+            setOnClickListener { renderCategory(selectedCat) }
+        }, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ))
+
+        // 配置定义是从游戏 Python 里异步取回来的，等一小会再渲染（与弹层同样的做法）
+        McpBridge.refreshConfig(activity, module.name)
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            try {
+                host.addView(FeatureConfigDialog.buildCard(activity, module))
+            } catch (e: Throwable) {
+            }
+        }, 350L)
+    }
+
     private fun renderCategory(index: Int) {
         selectedCat = index
         prefs.edit().putInt("cat", index).apply()
@@ -582,7 +615,7 @@ class OverlayLayout(
                 host.addView(PyLoaderUi.buildView(activity))
             }
             3 -> {
-                host.addView(HotkeyUi.buildView(activity))
+                host.addView(HotkeyUi.buildView(activity) { module -> showConfigInColumn(module) })
             }
             4 -> {
                 host.addView(SettingsUi.buildView(activity))

@@ -53,7 +53,8 @@ object FeatureConfigDialog {
         popup = null
     }
 
-    private fun build(activity: Activity, module: McpModule) {
+    /** 只构建配置内容（不弹窗）。面板里「点模块 -> 右栏整体变成配置菜单」用这个。 */
+    fun buildCard(activity: Activity, module: McpModule): View {
         val dm = activity.resources.displayMetrics
         val d: (Float) -> Int = { (it * dm.density + .5f).toInt() }
         val items = McpBridge.loadConfig(activity)
@@ -123,7 +124,12 @@ object FeatureConfigDialog {
         }
 
         card.addView(scroll)
+        return card
+    }
 
+    private fun build(activity: Activity, module: McpModule) {
+        val dm = activity.resources.displayMetrics
+        val card = buildCard(activity, module)
         val w = (dm.widthPixels * 0.62f).toInt()
         val h = (dm.heightPixels * 0.78f).toInt()
         val pw = PopupWindow(card, w, h, false)

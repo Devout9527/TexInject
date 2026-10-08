@@ -41,7 +41,7 @@ object HotkeyUi {
 
     private val CAT_ORDER = listOf("Combat", "Movement", "World", "Visual", "Misc", "Client")
 
-    fun buildView(activity: Activity): View {
+    fun buildView(activity: Activity, onConfig: ((McpModule) -> Unit)? = null): View {
         val ctx = activity.applicationContext
         val density = activity.resources.displayMetrics.density
         fun dp(v: Float) = (v * density + .5f).toInt()
@@ -142,7 +142,7 @@ object HotkeyUi {
                 textSize = 13f
                 setTextColor(if (m.enabled) Color.parseColor("#7CFC9B") else Color.WHITE)
                 isClickable = true
-                setOnClickListener { FeatureConfigDialog.show(activity, m) }
+                setOnClickListener { if (onConfig != null) onConfig.invoke(m) else FeatureConfigDialog.show(activity, m) }
             }
             row.addView(label, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
 
@@ -154,7 +154,7 @@ object HotkeyUi {
                 setTextColor(Color.parseColor("#9AA0A8"))
                 isClickable = true
                 layoutParams = LinearLayout.LayoutParams(dp(26f), dp(26f)).apply { marginEnd = dp(6f) }
-                setOnClickListener { FeatureConfigDialog.show(activity, m) }
+                setOnClickListener { if (onConfig != null) onConfig.invoke(m) else FeatureConfigDialog.show(activity, m) }
             })
 
             val enSw = UiSwitch(activity).apply {
