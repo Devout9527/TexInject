@@ -86,6 +86,24 @@ class TexInjectHookInit : XposedModule() {
                 }
                 result
             }
+            // 放行明文 HTTP：音乐 API 只有 http://（Android 9+ 默认禁止），
+            // 而网络策略是【宿主进程】的，模块自己的清单改不了，只能 hook 掉判断。
+            try {
+                val np = Class.forName("android.security.NetworkSecurityPolicy")
+                try {
+                    val m0 = np.getDeclaredMethod("isCleartextTrafficPermitted")
+                    hook(m0).intercept { java.lang.Boolean.TRUE }
+                } catch (e1: Throwable) {
+                }
+                try {
+                    val m1 = np.getDeclaredMethod("isCleartextTrafficPermitted", String::class.java)
+                    hook(m1).intercept { java.lang.Boolean.TRUE }
+                } catch (e2: Throwable) {
+                }
+                bridgeLog("cleartext HTTP allowed (hook NetworkSecurityPolicy)")
+            } catch (e: Throwable) {
+                bridgeLog("cleartext hook failed", e)
+            }
             bridgeLog("Activity onCreate hook installed")
         } catch (e: Throwable) {
             hooksInstalled.set(false)

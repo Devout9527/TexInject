@@ -38,17 +38,27 @@ object ModuleRes {
 
     fun of(activity: Activity): Resources {
         cached?.let { return it }
-        val r = try {
-            activity.createPackageContext(MODULE_PKG, Context.CONTEXT_IGNORE_SECURITY).resources
+        // 方案 1：AssetManager 直接挂载模块 APK 的资源（最可靠）
+        try {
+            val ai = activity.packageManager.getApplicationInfo(MODULE_PKG, 0)
+            val am = android.content.res.AssetManager::class.java.newInstance()
+            val add = android.content.res.AssetManager::class.java
+                .getDeclaredMethod("addAssetPath", String::class.java)
+            add.isAccessible = true
+            add.invoke(am, ai.sourceDir)
+            val r = Resources(am, activity.resources.displayMetrics, activity.resources.configuration)
+            cached = r
+            return r
         } catch (e: Throwable) {
-            try {
-                // 退路：直接用模块 ClassLoader 里的资源
-                Class.forName("$MODULE_PKG.R", false, activity.javaClass.classLoader)
-                activity.resources
-            } catch (e2: Throwable) {
-                activity.resources
-            }
         }
+        // 方案 2：createPackageContext
+        try {
+            val r = activity.createPackageContext(MODULE_PKG, Context.CONTEXT_IGNORE_SECURITY).resources
+            cached = r
+            return r
+        } catch (e: Throwable) {
+        }
+        val r = activity.resources
         cached = r
         return r
     }

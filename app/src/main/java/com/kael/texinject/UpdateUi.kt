@@ -49,14 +49,17 @@ object UpdateUi {
 
     /** 在后台检查，然后回主线程弹框。silent=true 时（自动检查）无更新就不打扰。 */
     fun checkAndShow(context: Context, silent: Boolean) {
-        val ctx = context.applicationContext
+        // 关键：弹对话框必须用 Activity（applicationContext 没有 window token -> BadTokenException）
+        val ui = (context as? android.app.Activity) ?: return
+        val app = ui.applicationContext
         Thread({
-            val r = Updater.check(ctx)
-            main.post { show(ctx, r, silent) }
+            val r = Updater.check(app)
+            main.post { show(ui, r, silent) }
         }, "texinject-update").start()
     }
 
-    fun show(ctx: Context, r: Updater.Result, silent: Boolean) {
+    fun show(ui: android.app.Activity, r: Updater.Result, silent: Boolean) {
+        val ctx = ui
         try {
             if (!r.ok) {
                 if (silent) return
@@ -96,7 +99,7 @@ object UpdateUi {
 
     /** 启动满 100 次提示点 star（只弹一次）。 */
     fun maybeAskStar(context: Context) {
-        val ctx = context.applicationContext
+        val ctx = (context as? android.app.Activity) ?: return
         try {
             if (!LaunchCounter.shouldAskStar(ctx)) return
             LaunchCounter.markStarShown(ctx)
