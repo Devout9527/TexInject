@@ -301,6 +301,49 @@ object MusicPlayer {
         qrBox!!.addView(qrUrlView, lp())
         root.addView(qrBox, lp())
 
+        // 分类切换：左「推荐」 / 右「最近播放」
+        var refreshTabs: () -> Unit = {}
+        val tabRow = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, d(6f), 0, d(2f))
+        }
+        fun mkTab(label: String, index: Int): TextView = TextView(activity).apply {
+            text = label
+            gravity = Gravity.CENTER
+            textSize = 12.5f
+            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+            setTextColor(Color.WHITE)
+            setPadding(d(8f), d(15f), d(8f), d(15f))
+            setOnClickListener {
+                curTab = index
+                if (index == 0) {
+                    loadRecommend(activity)
+                } else {
+                    setStatus("最近播放 ${recents.size} 首")
+                    renderList(activity, recents.toList())
+                }
+                refreshTabs()
+            }
+        }
+        val tabRec = mkTab("推荐", 0)
+        val tabRecent = mkTab("最近播放", 1)
+        tabRow.addView(tabRec, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        tabRow.addView(tabRecent, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = d(6f) })
+        root.addView(tabRow, lp())
+
+        refreshTabs = {
+            val pairs = listOf(tabRec to 0, tabRecent to 1)
+            for (pair in pairs) {
+                val v = pair.first
+                val on = pair.second == curTab
+                v.background = GradientDrawable().apply {
+                    setColor(Color.parseColor(if (on) "#550A84FF" else "#22FFFFFF"))
+                    cornerRadius = d(9f).toFloat()
+                }
+            }
+        }
+        refreshTabs()
+
         // 状态
         statusView = TextView(activity).apply {
             text = currentSong?.let { "播放中：${it.name}" } ?: "输入关键词搜索，或稍候加载推荐"
