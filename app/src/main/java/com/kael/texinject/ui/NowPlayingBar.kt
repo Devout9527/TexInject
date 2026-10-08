@@ -107,6 +107,7 @@ object NowPlayingBar {
     private var lyricView: TextView? = null
     private var prefs: android.content.SharedPreferences? = null
     private var appContext: android.content.Context? = null
+    @Volatile private var actRef: Activity? = null
     private val handler = Handler(Looper.getMainLooper())
     private var playIcon: ImageView? = null
 
@@ -115,6 +116,7 @@ object NowPlayingBar {
 
     fun attach(activity: Activity, parent: ViewGroup, onTap: (() -> Unit)? = null) {
         appContext = activity.applicationContext
+        actRef = activity
         if (root != null) return
         val dp = activity.resources.displayMetrics.density
         fun d(v: Float) = (v * dp + .5f).toInt()
@@ -177,7 +179,9 @@ object NowPlayingBar {
             layoutParams = LinearLayout.LayoutParams(s, s).apply { rightMargin = d(7f) }
             scaleType = ImageView.ScaleType.FIT_CENTER
             // 播放条图标不支持自定义：暂停=三角 ▶，播放中="H 没有横"（两条竖杠）‖
-            setImageResource(com.kael.texinject.R.drawable.ic_play_triangle)
+            setImageDrawable(
+                com.kael.texinject.ui.ModuleRes.drawable(activity, com.kael.texinject.R.drawable.ic_play_triangle)
+            )
         }
         playIcon = icon
         content.addView(icon)
@@ -313,7 +317,11 @@ object NowPlayingBar {
         val playing = try { com.kael.texinject.MusicPlayer.isPlaying() } catch (e: Throwable) { false }
         val res = if (playing) com.kael.texinject.R.drawable.ic_pause_bars
                   else com.kael.texinject.R.drawable.ic_play_triangle
-        playIcon?.setImageResource(res)
+        playIcon?.let { iv ->
+            val act = actRef
+            val d = if (act != null) com.kael.texinject.ui.ModuleRes.drawable(act, res) else null
+            if (d != null) iv.setImageDrawable(d) else iv.setImageResource(res)
+        }
     }
 
     fun update(songText: String, lyricText: String) {

@@ -405,8 +405,9 @@ class OverlayLayout(
                     if (bmp != null) {
                         setImageBitmap(bmp)
                     } else {
-                        setImageResource(builtin!!)
-                        // 内置图标是描边矢量，统一染成白色，避免某些 ROM 上不上色
+                        // 关键：用模块自己的 Resources，否则游戏内解析不到这个 id
+                        val d = com.kael.texinject.ui.ModuleRes.drawable(activity, builtin!!)
+                        setImageDrawable(d)
                         imageTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
                     }
                     scaleType = ImageView.ScaleType.FIT_CENTER
