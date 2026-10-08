@@ -106,6 +106,53 @@ object IconLoader {
         return null
     }
 
+    /**
+     * 悬浮球 / 面板图标（支持 GIF 动图）。
+     *
+     * 优先用系统 ImageDecoder 解码：GIF 会返回会自动播放的 AnimatedImageDrawable
+     * （API 28+，本模块目标设备均满足），PNG/JPG 则为普通 BitmapDrawable。
+     * 解码失败回退到 Bitmap 版本 / 内置默认图标。
+     */
+    fun getLogoDrawable(context: Context, sourceDir: File? = null): android.graphics.drawable.Drawable {
+        val file = findIconFile(context, sourceDir)
+        if (file != null) {
+            if (dropCached != null && drawableFrom == file.absolutePath) return dropCached!!
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= 28) {
+                    val src = android.graphics.ImageDecoder.createSource(file)
+                    val d = android.graphics.ImageDecoder.decodeDrawable(src) { decoder, _, _ ->
+                        decoder.allocator = android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE
+                    }
+                    if (d is android.graphics.drawable.AnimatedImageDrawable) {
+                        d.repeatCount = android.graphics.drawable.AnimatedImageDrawable.REPEAT_INFINITE
+                        d.start()
+                    }
+                    dropCached = d
+                    drawableFrom = file.absolutePath
+                    return d
+                }
+            } catch (e: Throwable) {
+            }
+            // 老系统 / 解码失败：退回静态图
+            try {
+                BitmapFactory.decodeFile(file.absolutePath)?.let {
+                    val d = android.graphics.drawable.BitmapDrawable(context.resources, it)
+                    dropCached = d
+                    drawableFrom = file.absolutePath
+                    return d
+                }
+            } catch (e: Throwable) {
+            }
+        }
+        val d = android.graphics.drawable.BitmapDrawable(context.resources, getLogo(context, sourceDir))
+        dropCached = d
+        drawableFrom = null
+        return d
+    }
+
+    @Volatile private var dropCached: android.graphics.drawable.Drawable? = null
+    @Volatile private var drawableFrom: String? = null
+
     fun getLogo(context: Context, sourceDir: File? = null): Bitmap {
         val file = findIconFile(context, sourceDir)
         if (file != null) {

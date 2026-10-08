@@ -195,7 +195,7 @@ class OverlayLayout(
         } else {
             val icon = ImageView(activity).apply {
                 layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-                setImageBitmap(IconLoader.getLogo(activity, GamePaths.sourceDir))
+                setImageDrawable(IconLoader.getLogoDrawable(activity, GamePaths.sourceDir))
                 scaleType = ImageView.ScaleType.FIT_CENTER
             }
             ball.addView(icon)
@@ -345,7 +345,7 @@ class OverlayLayout(
         } else {
             logoBox.addView(ImageView(activity).apply {
                 layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-                setImageBitmap(IconLoader.getLogo(activity, GamePaths.sourceDir))
+                setImageDrawable(IconLoader.getLogoDrawable(activity, GamePaths.sourceDir))
                 scaleType = ImageView.ScaleType.FIT_CENTER
             })
         }
@@ -638,8 +638,8 @@ class OverlayLayout(
 
     private fun refreshHeaderLogo() {
         // 头部/悬浮球图标刷新
-        (floatingBall?.getChildAt(0) as? ImageView)?.setImageBitmap(
-            IconLoader.getLogo(activity, GamePaths.sourceDir)
+        (floatingBall?.getChildAt(0) as? ImageView)?.setImageDrawable(
+            IconLoader.getLogoDrawable(activity, GamePaths.sourceDir)
         )
     }
 
