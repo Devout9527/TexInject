@@ -40,7 +40,7 @@ object UiTheme {
         return mode == Configuration.UI_MODE_NIGHT_YES
     }
 
-    // CreeperBox ClickGUI 配色
+    // 面板配色
     val cbPanel = Color.parseColor("#C0252525")
     val cbList = Color.parseColor("#C0121212")
     val cbHighlight = Color.parseColor("#FF0062FF")

@@ -39,7 +39,7 @@ import android.widget.TextView
  *  - 独立窗口是独立的输入目标 → 一根手指搓游戏摇杆、另一根点按钮，多指天然可用
  *    （同一个窗口里 Android 只有一条触摸流，跨 View 多指会失效）
  *  - PopupWindow 挂在 activity 的 decorView 上，**不需要 SYSTEM_ALERT_WINDOW 权限**
- * 参考 CreeperBox 的 ClickIcon（同样是 PopupWindow + 小尺寸 + setTouchable(true) + setFocusable(false)）。
+ * 悬浮胶囊：PopupWindow + 小尺寸 + setTouchable(true) + setFocusable(false)。
  */
 object HotkeyLayer {
 

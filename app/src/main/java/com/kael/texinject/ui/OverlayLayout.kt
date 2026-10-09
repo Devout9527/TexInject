@@ -41,7 +41,7 @@ import com.kael.texinject.TexInjector
 import com.kael.texinject.MusicPlayer
 
 /**
- * 游戏内悬浮窗：可拖动悬浮球 + 侧边栏式设置面板（复刻 CreeperBox ClickGUI 的结构与配色）。
+ * 游戏内悬浮窗：可拖动悬浮球 + 侧边栏式设置面板。
  *
  * 结构：主面板（深色圆角 #C0252525）→ 头部标题 + 分隔线 + 左侧分类栏 + 右侧内容卡片。
  * 选中分类用蓝色 #FF0062FF 高亮。

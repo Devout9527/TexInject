@@ -26,7 +26,7 @@ import java.io.File
  *
  * 每个分类依次尝试这些文件名（任一即可）：
  *   • <分类名>.png        例：材质.png / 导入.png
- *   • icon<序号>.png      例：icon1.png … icon6.png（CreeperBox 风格）
+ *   • icon<序号>.png      例：icon1.png … icon6.png
  * 找不到则该分类只显示文字。
  */
 object CategoryIcons {
