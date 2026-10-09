@@ -179,8 +179,9 @@ object NowPlayingBar {
             layoutParams = LinearLayout.LayoutParams(s, s).apply { rightMargin = d(7f) }
             scaleType = ImageView.ScaleType.FIT_CENTER
             // 播放条图标不支持自定义：暂停=三角 ▶，播放中="H 没有横"（两条竖杠）‖
-            setImageDrawable(
-                com.kael.texinject.ui.ModuleRes.drawable(activity, com.kael.texinject.R.drawable.ic_play_triangle)
+            setImageBitmap(
+                com.kael.texinject.ui.ModuleRes.loadAsset(activity, "icons/play.png")
+                    ?: android.graphics.BitmapFactory.decodeResource(activity.resources, android.R.drawable.ic_media_play)
             )
         }
         playIcon = icon
@@ -315,12 +316,16 @@ object NowPlayingBar {
     /** 按当前播放状态刷新图标：暂停 -> ▶ ；播放中 -> ‖ */
     fun refreshIcon() {
         val playing = try { com.kael.texinject.MusicPlayer.isPlaying() } catch (e: Throwable) { false }
-        val res = if (playing) com.kael.texinject.R.drawable.ic_pause_bars
-                  else com.kael.texinject.R.drawable.ic_play_triangle
         playIcon?.let { iv ->
             val act = actRef
-            val d = if (act != null) com.kael.texinject.ui.ModuleRes.drawable(act, res) else null
-            if (d != null) iv.setImageDrawable(d) else iv.setImageResource(res)
+            if (act != null) {
+                val asset = if (playing) "icons/pause.png" else "icons/play.png"
+                com.kael.texinject.ui.ModuleRes.loadAsset(act, asset)?.let { bmp ->
+                    iv.setImageBitmap(bmp)
+                    return@let
+                }
+            }
+            iv.setImageResource(android.R.drawable.ic_media_play)
         }
     }
 

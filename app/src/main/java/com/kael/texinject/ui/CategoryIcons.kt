@@ -19,7 +19,6 @@ package com.kael.texinject.ui
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import com.kael.texinject.R
 import java.io.File
 
 /**
@@ -36,16 +35,19 @@ object CategoryIcons {
      *   0 材质替换 / 1 音乐 / 2 脚本 / 3 快捷键 / 4 设置
      * 自定义 PNG 存在时优先用 PNG（内置 < 自定义）。
      */
-    private val BUILTIN = intArrayOf(
-        R.drawable.ic_cat_material,
-        R.drawable.ic_cat_music,
-        R.drawable.ic_cat_script,
-        R.drawable.ic_cat_hotkey,
-        R.drawable.ic_cat_settings
+    private val BUILTIN_ASSETS = arrayOf(
+        "icons/cat_material.png",
+        "icons/cat_music.png",
+        "icons/cat_script.png",
+        "icons/cat_hotkey.png",
+        "icons/cat_settings.png"
     )
 
-    /** 该分类的内置图标资源 id；越界返回 null。 */
-    fun builtinRes(index: Int): Int? = BUILTIN.getOrNull(index)
+    /** 该分类的内置 PNG 位图（从模块 assets 加载，不走资源 ID）。 */
+    fun builtinBitmap(context: Context, index: Int): android.graphics.Bitmap? {
+        val path = BUILTIN_ASSETS.getOrNull(index) ?: return null
+        return com.kael.texinject.ui.ModuleRes.loadAsset(context as android.app.Activity, path)
+    }
 
     @Volatile
     private var cache = HashMap<String, Bitmap?>()

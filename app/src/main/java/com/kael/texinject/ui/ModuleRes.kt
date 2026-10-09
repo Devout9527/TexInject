@@ -70,3 +70,16 @@ object ModuleRes {
         null
     }
 }
+
+    /** 从模块 APK 的 assets 里加载一个 PNG 位图（不走资源 ID，彻底绕开跨进程资源表问题）。 */
+    fun loadAsset(activity: Activity, path: String): android.graphics.Bitmap? {
+        return try {
+            val am = of(activity).assets
+            am.open(path).use { stream ->
+                android.graphics.BitmapFactory.decodeStream(stream)
+            }
+        } catch (e: Throwable) {
+            android.util.Log.e("TexInjectRes", "loadAsset $path failed", e)
+            null
+        }
+    }
