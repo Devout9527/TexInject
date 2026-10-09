@@ -394,29 +394,16 @@ class OverlayLayout(
                 isClickable = true
                 setOnClickListener { renderCategory(i) }
             }
-            // 下层：图标（居中）。自定义 PNG 优先，否则用内置矢量图标
+            // 下层：图标（居中）。自定义 PNG 优先，否则用内置 PNG（从模块 assets 读）
             val bmp = CategoryIcons.get(activity, GamePaths.sourceDir, name, i)
-            val builtin = CategoryIcons.builtinRes(i)
-            if (bmp != null || builtin != null) {
-                // 图标大小 = 「设置 → 面板布局 → 分类图标大小」(dp)，可自定义
+            val builtinBmp = CategoryIcons.builtinBitmap(activity, i)
+            if (bmp != null || builtinBmp != null) {
                 val side = dp(PanelTuning.iconDp(activity).toFloat())
                 val iv = ImageView(activity).apply {
                     layoutParams = FrameLayout.LayoutParams(side, side, Gravity.CENTER)
-                    if (bmp != null) {
-                        setImageBitmap(bmp)
-                    } else {
-                        // 关键：用模块自己的 Resources，否则游戏内解析不到这个 id
-                        val d = com.kael.texinject.ui.ModuleRes.drawable(activity, builtin!!)
-                        setImageDrawable(d)
-                        imageTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
-                    }
+                    setImageBitmap(bmp ?: builtinBmp)
                     scaleType = ImageView.ScaleType.FIT_CENTER
                 }
-                com.kael.texinject.TexInjectHookInit.logExternal(
-                    "[TexInject] cat icon[$i] name=$name " +
-                    (if (bmp != null) "custom bitmap" else "builtin res=$builtin") +
-                    " size=${side}px"
-                )
                 sidebarIconViews.add(iv)
                 item.addView(iv)
             }
