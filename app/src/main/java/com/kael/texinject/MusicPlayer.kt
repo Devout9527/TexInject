@@ -759,6 +759,7 @@ object MusicPlayer {
     }
 
     private fun startPlay(song: Song, url: String) {
+        NowPlayingBar.refreshIcon()
         main.post {
             try {
                 player?.release()
@@ -832,6 +833,7 @@ object MusicPlayer {
         try {
             if (mp.isPlaying) { mp.pause(); setStatus("已暂停") }
             else { mp.start(); setStatus("播放中") }
+            NowPlayingBar.refreshIcon()
         } catch (e: Throwable) { setStatus("操作失败：${e.message}") }
     }
 
@@ -910,6 +912,7 @@ object MusicPlayer {
 
     fun stop() {
         stopPolling()
+        NowPlayingBar.refreshIcon()
         stopLyricLoop()
         lyricLines = emptyList()
         try { player?.release() } catch (e: Throwable) {}

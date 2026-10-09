@@ -318,14 +318,17 @@ object NowPlayingBar {
         val playing = try { com.kael.texinject.MusicPlayer.isPlaying() } catch (e: Throwable) { false }
         playIcon?.let { iv ->
             val act = actRef
-            if (act != null) {
-                val asset = if (playing) "icons/pause.png" else "icons/play.png"
-                com.kael.texinject.ui.ModuleRes.loadAsset(act, asset)?.let { bmp ->
-                    iv.setImageBitmap(bmp)
-                    return@let
-                }
+            val asset = if (playing) "icons/pause.png" else "icons/play.png"
+            val bmp = if (act != null) com.kael.texinject.ui.ModuleRes.loadAsset(act, asset) else null
+            if (bmp != null) {
+                iv.setImageBitmap(bmp)
+            } else {
+                // bmp 为空才走系统兜底，而且暂停/播放要用不同的系统图标
+                iv.setImageResource(
+                    if (playing) android.R.drawable.ic_media_pause
+                    else android.R.drawable.ic_media_play
+                )
             }
-            iv.setImageResource(android.R.drawable.ic_media_play)
         }
     }
 
