@@ -394,14 +394,13 @@ class OverlayLayout(
                 isClickable = true
                 setOnClickListener { renderCategory(i) }
             }
-            // 下层：图标（居中）。自定义 PNG 优先，否则用内置 PNG（从模块 assets 读）
+            // 下层：图标（居中）。只用用户自定义的 PNG（不放素材目录就只显示文字）。
             val bmp = CategoryIcons.get(activity, GamePaths.sourceDir, name, i)
-            val builtinBmp = CategoryIcons.builtinBitmap(activity, i)
-            if (bmp != null || builtinBmp != null) {
+            if (bmp != null) {
                 val side = dp(PanelTuning.iconDp(activity).toFloat())
                 val iv = ImageView(activity).apply {
                     layoutParams = FrameLayout.LayoutParams(side, side, Gravity.CENTER)
-                    setImageBitmap(bmp ?: builtinBmp)
+                    setImageBitmap(bmp)
                     scaleType = ImageView.ScaleType.FIT_CENTER
                 }
                 sidebarIconViews.add(iv)
