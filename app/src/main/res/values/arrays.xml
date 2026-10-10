@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LSPosed 作用域：网易版 Minecraft -->
+    <string-array name="xposed_scope">
+        <item>com.netease.x19</item>
+    </string-array>
+</resources>

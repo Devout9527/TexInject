@@ -1,0 +1,12 @@
+build/
+.gradle/
+local.properties
+*.iml
+.idea/
+.cxx/
+captures/
+
+# 签名密钥不入库（含密码的 local.properties 已在上面）
+keystore/
+*.jks
+*.keystore

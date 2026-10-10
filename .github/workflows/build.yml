@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.0.12077973 cmake;3.22.1'
+
+      # 还原签名密钥 + 构建 + 重命名，合并成一步
+      - name: Build
+        env:
+          KEYSTORE_PATH: keystore/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: texinject
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -e
+          chmod +x gradlew
+          mkdir -p keystore
+          echo "${{ secrets.SIGNING_KEY }}" | base64 -d > keystore/release.jks
+          ./gradlew assembleRelease --no-daemon
+          VER=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          mkdir -p out
+          cp app/build/outputs/apk/release/*.apk "out/TexInject-$VER.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TexInject-apk
+          path: out/*.apk
+          if-no-files-found: error
+
+      - name: Publish Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/*.apk
+          generate_release_notes: ${{ github.repository == 'Devout9527/TexInject-dev' }}
+          body: ${{ github.repository == 'Devout9527/TexInject-dev' && '开发构建。适配游戏版本 3.9.15.297907。' || '' }}
