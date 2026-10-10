@@ -21,17 +21,10 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      # 只缓存体积小的部分（build-tools / cmake / platforms，约 200MB）。
-      # 故意【不】缓存 NDK：它约 1GB，actions/cache 收尾时压缩上传要 4~5 分钟，
-      # 反而比直接从 Google CDN 下载（约 1.5 分钟）更慢，还会让整个 run 一直显示"进行中"。
-      - name: Cache Android SDK bits
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/lib/android/sdk/build-tools
-            /usr/local/lib/android/sdk/cmake
-            /usr/local/lib/android/sdk/platforms
-          key: sdk-${{ runner.os }}-bt36-cmake322-android36
+      # 刻意【不】缓存 Android SDK（build-tools/cmake/platforms 加起来 1.4GB，
+      # NDK 又是 1GB）—— actions/cache 收尾时压缩上传要 3~4 分钟，
+      # 比直接从 Google CDN 下载还慢，还会让 run 一直卡在"进行中"。
+      # 只靠 setup-java 自带的 gradle 依赖缓存就够了。
 
       - uses: android-actions/setup-android@v3
         with:
