@@ -21,6 +21,18 @@ jobs:
           java-version: '21'
           cache: gradle
 
+      # 只缓存体积小的部分（build-tools / cmake / platforms，约 200MB）。
+      # 故意【不】缓存 NDK：它约 1GB，actions/cache 收尾时压缩上传要 4~5 分钟，
+      # 反而比直接从 Google CDN 下载（约 1.5 分钟）更慢，还会让整个 run 一直显示"进行中"。
+      - name: Cache Android SDK bits
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/lib/android/sdk/build-tools
+            /usr/local/lib/android/sdk/cmake
+            /usr/local/lib/android/sdk/platforms
+          key: sdk-${{ runner.os }}-bt36-cmake322-android36
+
       - uses: android-actions/setup-android@v3
         with:
           packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.0.12077973 cmake;3.22.1'
@@ -37,7 +49,7 @@ jobs:
           chmod +x gradlew
           mkdir -p keystore
           echo "${{ secrets.SIGNING_KEY }}" | base64 -d > keystore/release.jks
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleRelease --build-cache
           VER=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
           mkdir -p out
           cp app/build/outputs/apk/release/*.apk "out/TexInject-$VER.apk"
