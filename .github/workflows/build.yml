@@ -21,6 +21,19 @@ jobs:
           java-version: '21'
           cache: gradle
 
+      # 关键优化：把 Android SDK 里最重的部分缓存起来（NDK 约 1GB + build-tools + cmake）
+      # 必须在 setup-android 之前还原，命中后它会跳过下载 —— 二次构建能省 2~3 分钟
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/lib/android/sdk/ndk
+            /usr/local/lib/android/sdk/build-tools
+            /usr/local/lib/android/sdk/cmake
+            /usr/local/lib/android/sdk/platforms
+            /usr/local/lib/android/sdk/platform-tools
+          key: sdk-${{ runner.os }}-ndk27-bt36-cmake322
+
       - uses: android-actions/setup-android@v3
         with:
           packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.0.12077973 cmake;3.22.1'
@@ -37,7 +50,7 @@ jobs:
           chmod +x gradlew
           mkdir -p keystore
           echo "${{ secrets.SIGNING_KEY }}" | base64 -d > keystore/release.jks
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleRelease --build-cache
           VER=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
           mkdir -p out
           cp app/build/outputs/apk/release/*.apk "out/TexInject-$VER.apk"
