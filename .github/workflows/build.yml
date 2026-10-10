@@ -65,6 +65,15 @@ jobs:
           if-no-files-found: error
 
       # 打 v* tag 时自动创建 GitHub Release，并把 APK 附上去
+      # 说明只在私人仓库(开发仓)写；公共仓库保持空白
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/TexInject-*.apk
+          generate_release_notes: ${{ github.repository == 'Devout9527/TexInject-dev' }}
+          body: ${{ github.repository == 'Devout9527/TexInject-dev' && '开发构建（私人仓库）。适配游戏版本 3.9.15.297907。' || '' }}
+
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
