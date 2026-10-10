@@ -10,3 +10,8 @@ captures/
 keystore/
 *.jks
 *.keystore
+
+# 本地开发工具（签名生成器/函数表/扫描器原型）——不进仓库
+tools/siggen/
+docs/网易版函数表.md
+app/src/main/cpp/sig/
