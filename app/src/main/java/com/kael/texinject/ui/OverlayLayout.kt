@@ -72,7 +72,11 @@ class OverlayLayout(
     private var panelVideo: com.kael.texinject.ui.CenterCropVideo? = null
     private val sidebarItems = mutableListOf<View>()
     private val sidebarLabels = mutableListOf<TextView>()
-    private val sidebarIconViews = mutableListOf<ImageView>()
+    /**
+     * 与 cats 等长：有自定义图标的存 ImageView，没有的存 null。
+     * 这样索引始终和分类一一对应，不会因为"有的分类没图标"而错位。
+     */
+    private val sidebarIconViews = mutableListOf<ImageView?>()
     private var selectedCat = 0
 
     private val prefs = activity.getSharedPreferences("texinject_overlay", Context.MODE_PRIVATE)
@@ -117,7 +121,8 @@ class OverlayLayout(
 
         // 分类图标大小
         val iconPx = dp(PanelTuning.iconDp(activity).toFloat())
-        for (iv in sidebarIconViews) {
+        for (iv0 in sidebarIconViews) {
+            val iv = iv0 ?: continue
             (iv.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
                 lp.width = iconPx
                 lp.height = iconPx
@@ -388,6 +393,7 @@ class OverlayLayout(
         }
         sidebarItems.clear()
         sidebarLabels.clear()
+        sidebarIconViews.clear()
         cats.forEachIndexed { i, name ->
             // 叠层容器：图标在下层，文字盖在上层（Z 轴）
             val item = FrameLayout(activity).apply {
@@ -405,6 +411,8 @@ class OverlayLayout(
                 }
                 sidebarIconViews.add(iv)
                 item.addView(iv)
+            } else {
+                sidebarIconViews.add(null)   // 占位，保持索引对齐
             }
             // 上层：文字（铺满整格、居中，压在图标上面）
             val label = TextView(activity).apply {
@@ -538,12 +546,14 @@ class OverlayLayout(
         }
         sidebarLabels.forEachIndexed { i, t ->
             t.setTextColor(if (i == index) Color.WHITE else UiTheme.glassWhiteText)
-            // 选中 -> 只显示文字
-            t.visibility = if (i == index) View.VISIBLE else View.GONE
+            // 没自定义图标 -> 不管选中与否，一直显示文字
+            // 有自定义图标 -> 只有选中时显示文字
+            val hasIcon = sidebarIconViews.getOrNull(i) != null
+            t.visibility = if (!hasIcon || i == index) View.VISIBLE else View.GONE
         }
         sidebarIconViews.forEachIndexed { i, iv ->
-            // 未选中 -> 只显示图标
-            iv.visibility = if (i == index) View.GONE else View.VISIBLE
+            // 有图标的那几格：未选中 -> 显示图标
+            iv?.visibility = if (i == index) View.GONE else View.VISIBLE
         }
         com.kael.texinject.TexInjectHookInit.logExternal(
             "[TexInject] renderCategory=$index icons=${sidebarIconViews.size} labels=${sidebarLabels.size}"
