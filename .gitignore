@@ -1,0 +1,17 @@
+build/
+.gradle/
+local.properties
+*.iml
+.idea/
+.cxx/
+captures/
+
+keystore/
+*.jks
+*.keystore
+
+tools/siggen/
+docs/网易版函数表.md
+app/src/main/cpp/sig/
+
+.kotlin/
