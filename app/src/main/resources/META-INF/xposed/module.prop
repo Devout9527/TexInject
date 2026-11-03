@@ -1,0 +1,4 @@
+# 现代 LibXposed API（api-102）模块元数据
+minApiVersion=102
+targetApiVersion=102
+staticScope=true
